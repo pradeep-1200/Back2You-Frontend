@@ -84,7 +84,8 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          <span className="logo-icon">B2Y</span> Back2You
+          <img src="/logo.png" alt="Back2You logo" className="logo-mark" />
+          <span className="logo-wordmark">Back2You</span>
         </Link>
 
         <div className="nav-menu desktop-nav">

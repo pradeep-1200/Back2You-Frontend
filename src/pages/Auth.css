@@ -61,6 +61,34 @@
   background: #f9fafb;
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-toggle:hover {
+  color: #1f2937;
+}
+
 .form-group input:focus {
   border-color: #3b82f6;
   background: #fff;
