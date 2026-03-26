@@ -119,7 +119,7 @@ const ItemDetail = () => {
       <div className="detail-grid">
         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="detail-img-box card">
           <span className={`status-badge-lg status-${item.status}`}>
-            {item.status === 'lost' ? 'Reported Lost 🔴' : 'Reported Found 🟢'}
+            {item.status === 'lost' ? 'Reported Lost 🔴' : item.status === 'claimed' ? 'Claimed ✅' : 'Reported Found 🟢'}
           </span>
           {item.imageUrl ? <img src={item.imageUrl} alt={item.title} /> : <div className="detail-no-img"><Box size={64}/></div>}
         </motion.div>
@@ -150,7 +150,7 @@ const ItemDetail = () => {
              </div>
           </div>
 
-          {(!user || user._id !== item.userId?._id) && !claims.some(c => c.userId?._id === user?._id) && (
+          {(!user || user._id !== item.userId?._id) && item.status === 'found' && !claims.some(c => c.userId?._id === user?._id) && (
             <motion.button 
                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}
                className="btn-primary claim-trigger mt-4"
@@ -179,7 +179,7 @@ const ItemDetail = () => {
                   <div style={{ textAlign: 'right' }}>
                     <span className={`status-badge ${claim.status}`} style={{ display: 'inline-block', marginBottom: '0.5rem' }}>Status: {claim.status.toUpperCase()}</span>
                     
-                    {user._id === item.userId?._id && claim.status === 'requested' && (
+                    {user._id === item.userId?._id && claim.status === 'pending' && (
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => handleUpdateClaim(claim._id, 'approved')} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>Approve</button>
                         <button onClick={() => handleUpdateClaim(claim._id, 'rejected')} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>Reject</button>
@@ -191,20 +191,57 @@ const ItemDetail = () => {
                   </div>
                 </div>
 
-                {['approved', 'requested', 'completed'].includes(claim.status) && (
-                  <div className="chat-box" style={{ background: '#f9fafb', borderRadius: '8px', padding: '1rem' }}>
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
-                      {claim.messages && claim.messages.map((msg, i) => (
-                        <div key={i} style={{ marginBottom: '0.5rem', textAlign: msg.sender?._id === user._id ? 'right' : 'left' }}>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{msg.sender?.name}:</span>
-                          <span style={{ display: 'inline-block', background: msg.sender?._id === user._id ? '#e0f2fe' : '#fff', padding: '0.4rem 0.8rem', borderRadius: '16px', marginLeft: '0.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>{msg.text}</span>
-                        </div>
-                      ))}
+                {['approved', 'pending', 'completed'].includes(claim.status) && (
+                  <div className="chat-box" style={{ background: '#f9fafb', borderRadius: '12px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                    <div style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '8px', padding: '0.5rem' }}>
+                      {(!claim.messages || claim.messages.length === 0) ? (
+                        <div style={{ textAlign: 'center', color: '#9ca3af', padding: '1rem 0' }}>No messages yet. Say hi!</div>
+                      ) : (
+                        claim.messages.map((msg, i) => (
+                          <div key={i} style={{ 
+                            alignSelf: msg.sender?._id === user._id ? 'flex-end' : 'flex-start',
+                            maxWidth: '75%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: msg.sender?._id === user._id ? 'flex-end' : 'flex-start'
+                          }}>
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0 4px 2px 4px' }}>
+                              {msg.sender?.name} • {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </span>
+                            <div style={{ 
+                              background: msg.sender?._id === user._id ? '#3b82f6' : '#ffffff', 
+                              color: msg.sender?._id === user._id ? '#ffffff' : '#1f2937',
+                              padding: '8px 12px', 
+                              borderRadius: '16px', 
+                              borderBottomRightRadius: msg.sender?._id === user._id ? '4px' : '16px',
+                              borderBottomLeftRadius: msg.sender?._id !== user._id ? '4px' : '16px',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                              border: msg.sender?._id !== user._id ? '1px solid #e5e7eb' : 'none',
+                              wordBreak: 'break-word',
+                              fontSize: '0.9rem'
+                             }}>
+                              {msg.text}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {/* Auto-scroll target */}
+                      <div ref={(el) => { el?.scrollIntoView({ behavior: 'smooth' }) }}></div>
                     </div>
                     {claim.status !== 'completed' && (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" value={chatMessage} onChange={e => setChatMessage(e.target.value)} placeholder="Type a message..." style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }} />
-                        <button onClick={() => handleSendMessage(claim._id)} style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}>Send</button>
+                        <input 
+                          type="text" 
+                          value={chatMessage} 
+                          onChange={e => setChatMessage(e.target.value)} 
+                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(claim._id)} 
+                          placeholder="Type a message..." 
+                          style={{ flex: 1, padding: '0.6rem 1rem', borderRadius: '24px', border: '1px solid #d1d5db', outline: 'none' }} 
+                        />
+                        <button 
+                          onClick={() => handleSendMessage(claim._id)} 
+                          style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '24px', padding: '0.6rem 1.2rem', cursor: 'pointer', fontWeight: 600, transition: '0.2s' }}
+                        >Send</button>
                       </div>
                     )}
                     

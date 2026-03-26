@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
+import { io } from 'socket.io-client';
 import Home from './pages/Home';
 import AddItem from './pages/AddItem';
 import ItemDetail from './pages/ItemDetail';
@@ -8,9 +9,54 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Stats from './pages/Stats';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
+import { useAuth } from './context/AuthContext';
+
+const ENDPOINT = "http://localhost:5000";
+let socket;
 
 function App() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    socket = io(ENDPOINT);
+
+    if (user && user._id) {
+      socket.emit("setup", user);
+    }
+
+    socket.on("connected", () => {
+      console.log("Socket connected for real-time features!");
+    });
+
+    socket.on("new notification", (notification) => {
+      toast(notification.message, {
+        icon: '🔔',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    });
+
+    socket.on("claim message", (claim) => {
+      toast("New message about your claim", {
+        icon: '💬',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
+
   return (
     <Router>
       <div className="app-container">
@@ -27,6 +73,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/stats" element={<Stats />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
       </div>

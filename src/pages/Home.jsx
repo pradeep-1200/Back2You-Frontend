@@ -28,7 +28,7 @@ const Home = () => {
         setTrending(trendRes.data);
         setActivity(actRes.data);
       }).catch(() => {});
-    }, 10000); // 10s poll
+    }, 60000); // 60s poll
     return () => clearInterval(interval);
   }, []);
 

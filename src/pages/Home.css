@@ -86,6 +86,7 @@
 
 .status-lost { background: #ef4444; }
 .status-found { background: #10b981; }
+.status-claimed { background: #6366f1; }
 
 .item-info {
   padding: 1.8rem;
