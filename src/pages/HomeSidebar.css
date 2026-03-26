@@ -1,0 +1,148 @@
+.trending-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  max-width: 800px;
+  margin: -2rem auto 3.5rem;
+  justify-content: center;
+}
+.trending-title { color: var(--text-secondary); font-size: 0.95rem; font-weight: 700; }
+.trending-tag { 
+  margin: 0;
+}
+
+.search-container-wrapper {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto 4rem;
+}
+
+.search-container-wrapper .search-bar {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 8px 8px 8px 24px;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.search-container-wrapper .search-bar:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-container-wrapper input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.search-container-wrapper input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.search-container-wrapper .glass-btn {
+  background: var(--accent-color);
+  color: white;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.25s;
+}
+
+.search-container-wrapper .glass-btn:hover {
+  background: var(--accent-hover);
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 0.8rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+.suggestion-item {
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.suggestion-item:hover {
+  background: #f8fafc;
+  color: var(--accent-color);
+}
+
+.sidebar-widget {
+  margin-bottom: 24px;
+}
+
+.sidebar-widget h3 {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.8rem;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+.activity-item:last-child { margin-bottom: 0; padding-bottom: 0; border: none; }
+.activity-dot {
+  width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; 
+}
+.dot-lost { background: #ef4444; }
+.dot-found { background: #10b981; }
+.activity-text p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.3rem;}
+.activity-text p strong { color: var(--text-primary); }
+.activity-text small { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
+
+.features-list { list-style: none; display: flex; flex-direction: column; gap: 1.2rem; padding: 0; margin: 0; }
+.features-list li { display: flex; gap: 1rem; align-items: flex-start; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;}
+.features-list b { color: var(--text-primary); font-weight: 700; }
+
+.empty-illustration {
+  width: 150px;
+  opacity: 0.8;
+  margin-bottom: 1.5rem;
+}
+.close-btn { position: absolute; top: 1rem; right: 1rem; background:transparent; border:none; display:flex; padding:0.5rem; color:var(--text-secondary); opacity:0.8; cursor:pointer; transition: all 0.2s;}
+.close-btn:hover { opacity:1; color: var(--accent-color); }
+
+.score-text { font-size: 0.85rem; font-weight: 800; color: var(--text-primary); }
+.progress-bar-bg { width: 100%; height: 8px; background: var(--border-color); border-radius: var(--radius-full); margin-top: 8px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: var(--radius-full); background: var(--accent-color); }
+
+.match-modal { max-width: 600px !important; }
+
+@media (max-width: 950px) {
+  .home-sidebar { position: static; width: 100%; }
+}
