@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { deleteItem as deleteReportedItem } from '../services/api';
+import { BACKEND_URL } from '../config';
 import './Profile.css';
 
 const getItemLabel = (item) => {
@@ -35,9 +36,9 @@ const Profile = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const [itemsRes, claimsRes, savedRes] = await Promise.all([
-          axios.get(`http://localhost:5000/users/${user._id}/items`, config),
-          axios.get(`http://localhost:5000/users/${user._id}/claims`, config),
-          axios.get(`http://localhost:5000/users/saved`, config),
+          axios.get(`${BACKEND_URL}/users/${user._id}/items`, config),
+          axios.get(`${BACKEND_URL}/users/${user._id}/claims`, config),
+          axios.get(`${BACKEND_URL}/users/saved`, config),
         ]);
         setItems(itemsRes.data);
         setClaims(claimsRes.data);

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { PlusCircle, Home as HomeIcon, User, Bell, LogOut, Shield, Menu, X, CheckCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { BACKEND_URL } from '../config';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -18,7 +19,7 @@ const Navbar = () => {
     if (user) {
       const fetchNotifs = async () => {
         try {
-          const res = await axios.get('http://localhost:5000/notifications', {
+          const res = await axios.get(`${BACKEND_URL}/notifications`, {
             headers: { Authorization: `Bearer ${user.token}` },
           });
           setNotifications(res.data);
@@ -50,7 +51,7 @@ const Navbar = () => {
 
   const handleRead = async (id) => {
     try {
-      await axios.patch(`http://localhost:5000/notifications/${id}/read`, {}, {
+      await axios.patch(`${BACKEND_URL}/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));

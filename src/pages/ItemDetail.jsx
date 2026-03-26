@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Tag, Box, ArrowLeft, Bookmark, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { BACKEND_URL } from '../config';
 import './ItemDetail.css';
 
 const getStatusLabel = (status) => {
@@ -46,7 +47,7 @@ const ItemDetail = () => {
       return [];
     }
 
-    const { data } = await axios.get(`http://localhost:5000/claims/item/${id}`, {
+    const { data } = await axios.get(`${BACKEND_URL}/claims/item/${id}`, {
       headers: { Authorization: `Bearer ${user.token}` },
     });
     setClaims(data);
@@ -73,7 +74,7 @@ const ItemDetail = () => {
     if (updatingClaimId) return;
     setUpdatingClaimId(claimId);
     try {
-      await axios.patch(`http://localhost:5000/claims/${claimId}`, { status }, {
+      await axios.patch(`${BACKEND_URL}/claims/${claimId}`, { status }, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       await fetchClaims();
@@ -89,7 +90,7 @@ const ItemDetail = () => {
   const handleSendMessage = async (claimId) => {
     if (!chatMessage.trim()) return;
     try {
-      const { data } = await axios.post(`http://localhost:5000/claims/${claimId}/message`, {
+      const { data } = await axios.post(`${BACKEND_URL}/claims/${claimId}/message`, {
         text: chatMessage,
         senderId: user._id,
       }, {
@@ -105,7 +106,7 @@ const ItemDetail = () => {
   const toggleSave = async () => {
     if (!user) return toast.error("Please log in to save items");
     try {
-      const res = await axios.post(`http://localhost:5000/users/save/${id}`, {}, {
+      const res = await axios.post(`${BACKEND_URL}/users/save/${id}`, {}, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       setIsSaved(res.data.savedItems.includes(id));
@@ -331,7 +332,7 @@ const ItemDetail = () => {
                             const c = document.getElementById('comment-input').value;
                             if (!r) return toast.error("Rating is required");
                             try {
-                              await axios.post('http://localhost:5000/feedback', { rating: r, comment: c, claimId: claim._id }, { headers: { Authorization: `Bearer ${user.token}` } });
+                              await axios.post(`${BACKEND_URL}/feedback`, { rating: r, comment: c, claimId: claim._id }, { headers: { Authorization: `Bearer ${user.token}` } });
                               toast.success("Thanks for your feedback!");
                             } catch (e) {
                               toast.error("Failed to submit feedback");

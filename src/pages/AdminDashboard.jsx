@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Search, Shield, Users, Boxes, FileCheck2, Activity } from 'lucide-react';
+import { BACKEND_URL } from '../config';
 import './AdminDashboard.css';
 
-const API_URL = "http://localhost:5000/admin";
+const API_URL = `${BACKEND_URL}/admin`;
 const PAGE_SIZE = 6;
 
 const tabConfig = [

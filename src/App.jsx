@@ -12,15 +12,17 @@ import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import { RequireAdmin, RequireAuth } from './components/RouteGuards';
 import { useAuth } from './context/AuthContext';
+import { SOCKET_URL } from './config';
 
-const ENDPOINT = "http://localhost:5000";
 let socket;
 
 function App() {
   const { user } = useAuth();
 
   useEffect(() => {
-    socket = io(ENDPOINT);
+    socket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+    });
 
     if (user && user._id) {
       socket.emit("setup", user);

@@ -1,10 +1,8 @@
 import axios from 'axios';
-
-// Vite Proxy handles the routing from /api to http://localhost:5000
-const API_URL = '/api';
+import { API_BASE_URL } from '../config';
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
