@@ -4,6 +4,10 @@ import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import AddItem from './pages/AddItem';
 import ItemDetail from './pages/ItemDetail';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Profile from './pages/Profile';
+import Stats from './pages/Stats';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -19,6 +23,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/add" element={<AddItem />} />
             <Route path="/item/:id" element={<ItemDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/stats" element={<Stats />} />
           </Routes>
         </main>
       </div>

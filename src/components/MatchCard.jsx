@@ -39,6 +39,7 @@ const MatchCard = ({ matchInfo }) => {
                 style={{ backgroundColor: scoreColor }}
               />
             </div>
+            {matchInfo.explanation && <p className="match-explanation" style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem' }}>ℹ️ {matchInfo.explanation}</p>}
           </div>
 
           <div className="match-tags mt-2">

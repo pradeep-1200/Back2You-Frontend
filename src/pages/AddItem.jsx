@@ -5,11 +5,13 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X } from 'lucide-react';
 import MatchCard from '../components/MatchCard';
+import { useAuth } from '../context/AuthContext';
 import './Form.css';
 
 const AddItem = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState({ title: '', description: '', tags: '', status: 'lost' });
+  const { user } = useAuth();
+  const [data, setData] = useState({ title: '', description: '', tags: '', location: '', status: 'lost' });
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,9 +24,12 @@ const AddItem = () => {
     const toastId = toast.loading("Analyzing & Reporting Item...");
     
     try {
+      if (!user) {
+        return toast.error("Please log in to report an item");
+      }
       const formData = new FormData();
       Object.keys(data).forEach(k => formData.append(k, data[k]));
-      formData.append('userId', '60b8d295f1d4f4001550c822'); 
+      formData.append('userId', user._id); 
       if (image) formData.append('image', image);
 
       const res = await createItem(formData);
@@ -63,6 +68,7 @@ const AddItem = () => {
           
           <input className="form-input" required placeholder="Short Title (e.g. Leather Wallet)" value={data.title} onChange={e => setData({...data, title: e.target.value})} />
           <textarea className="form-input" rows="4" required placeholder="Description (Location, Time, Distinctive Marks)..." value={data.description} onChange={e => setData({...data, description: e.target.value})} />
+          <input className="form-input" placeholder="Location where it was lost/found" value={data.location} onChange={e => setData({...data, location: e.target.value})} />
           <input className="form-input" placeholder="Tags (comma separated e.g. wallet, brown, campus)" value={data.tags} onChange={e => setData({...data, tags: e.target.value})} />
 
           <label className="upload-box form-input">

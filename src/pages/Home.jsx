@@ -13,9 +13,23 @@ const Home = () => {
   const [trending, setTrending] = useState([]);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchActive, setSearchActive] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
+    const interval = setInterval(() => {
+      // Background poll: doesn't set loading to true
+      Promise.all([
+        getItems(),
+        getTrendingTags(),
+        getRecentActivity()
+      ]).then(([itemsRes, trendRes, actRes]) => {
+        setItems(prev => searchActive ? prev : itemsRes.data);
+        setTrending(trendRes.data);
+        setActivity(actRes.data);
+      }).catch(() => {});
+    }, 10000); // 10s poll
+    return () => clearInterval(interval);
   }, []);
 
   const fetchInitialData = async () => {
@@ -35,14 +49,19 @@ const Home = () => {
     }
   };
 
-  const handleSearch = async (query) => {
+  const handleSearch = async (searchParams) => {
     setLoading(true);
     try {
-      if (!query.trim()) {
+      // searchParams can be string from trending tags, or object from search bar
+      const params = typeof searchParams === 'string' ? { query: searchParams } : searchParams;
+
+      if (!params.query?.trim() && !params.location && !params.status && !params.date) {
+        setSearchActive(false);
         const { data } = await getItems();
         setItems(data);
       } else {
-        const { data } = await searchItems(query);
+        setSearchActive(true);
+        const { data } = await searchItems(params);
         setItems(data);
         toast.success(`Found ${data.length} matches!`, { icon: '🔍' });
       }

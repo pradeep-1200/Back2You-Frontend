@@ -4,31 +4,93 @@ import { getItemById, createClaim } from '../services/api';
 import MatchCard from '../components/MatchCard';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Tag, Box, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Tag, Box, ArrowLeft, Bookmark, MapPin } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import './ItemDetail.css';
 
 const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [item, setItem] = useState(null);
   const [claimModal, setClaimModal] = useState(false);
   const [claimText, setClaimText] = useState('');
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [claims, setClaims] = useState([]);
+  const [chatMessage, setChatMessage] = useState('');
 
   useEffect(() => {
     getItemById(id)
       .then(({ data }) => setItem(data))
       .catch(() => toast.error("Failed to fetch item details"))
       .finally(() => setLoading(false));
-  }, [id]);
+
+    if (user && user.savedItems) {
+      if (typeof user.savedItems[0] === 'object') {
+        setIsSaved(user.savedItems.some(item => item._id === id));
+      } else {
+        setIsSaved(user.savedItems.includes(id));
+      }
+    }
+
+    if (user) {
+      axios.get(`http://localhost:5000/claims/item/${id}`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      }).then(res => setClaims(res.data)).catch(err => console.error(err));
+    }
+  }, [id, user]);
+
+  const handleUpdateClaim = async (claimId, status) => {
+    try {
+      await axios.patch(`http://localhost:5000/claims/${claimId}`, { status }, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setClaims(claims.map(c => c._id === claimId ? { ...c, status } : c));
+      toast.success(`Claim marked as ${status}`);
+    } catch (e) {
+      toast.error('Failed to update claim');
+    }
+  };
+
+  const handleSendMessage = async (claimId) => {
+    if (!chatMessage.trim()) return;
+    try {
+      const { data } = await axios.post(`http://localhost:5000/claims/${claimId}/message`, {
+        text: chatMessage,
+        senderId: user._id
+      }, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setClaims(claims.map(c => c._id === claimId ? data : c));
+      setChatMessage('');
+    } catch (e) {
+      toast.error('Failed to send message');
+    }
+  };
+
+  const toggleSave = async () => {
+    if (!user) return toast.error("Please log in to save items");
+    try {
+      const res = await axios.post(`http://localhost:5000/users/save/${id}`, {}, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setIsSaved(res.data.savedItems.includes(id));
+      toast.success(isSaved ? "Item removed from saved" : "Item saved!");
+    } catch(e) {
+      toast.error("Failed to save item");
+    }
+  };
 
   const submitClaim = async () => {
+    if(!user) return toast.error("Please log in to claim items");
     if(!claimText.trim()) return toast.error("Proof is required to claim!");
     setClaiming(true);
     const toastId = toast.loading("Submitting Security Claim...");
     try {
-      await createClaim({ itemId: item._id, userId: '60b8d295f1d4f4001550c822', proofMessage: claimText });
+      await createClaim({ itemId: item._id, userId: user._id, proofMessage: claimText });
       toast.success("Claim Request Submitted! Sent for review.", { id: toastId });
       setClaimModal(false);
       setClaimText('');
@@ -63,8 +125,18 @@ const ItemDetail = () => {
         </motion.div>
         
         <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="detail-info-box card">
-          <h1>{item.title}</h1>
-          <div className="meta-info">Reported by Anonymous • {new Date(item.createdAt).toLocaleDateString()}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <h1>{item.title}</h1>
+            <button 
+              onClick={toggleSave}
+              className={`button icon-button ${isSaved ? 'saved' : ''}`}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: isSaved ? '#3b82f6' : '#9ca3af' }}
+            >
+              <Bookmark size={24} fill={isSaved ? '#3b82f6' : 'none'} />
+            </button>
+          </div>
+          <div className="meta-info">Reported by {item.userId?.name || 'Anonymous'} • {new Date(item.createdAt).toLocaleDateString()}</div>
+          {item.location && <div className="meta-info location-info mt-2" style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#6b7280' }}><MapPin size={16}/> {item.location}</div>}
           
           <div className="desc-section">
             <h3>Description</h3>
@@ -78,15 +150,89 @@ const ItemDetail = () => {
              </div>
           </div>
 
-          <motion.button 
-             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}
-             className="btn-primary claim-trigger"
-             onClick={() => setClaimModal(true)}
-          >
-             <ShieldCheck size={20}/> Ensure Claim Ownership
-          </motion.button>
+          {(!user || user._id !== item.userId?._id) && !claims.some(c => c.userId?._id === user?._id) && (
+            <motion.button 
+               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}
+               className="btn-primary claim-trigger mt-4"
+               onClick={() => setClaimModal(true)}
+            >
+               <ShieldCheck size={20}/> Ensure Claim Ownership
+            </motion.button>
+          )}
         </motion.div>
       </div>
+
+      {user && (
+        <div className="claims-section card mt-4" style={{ padding: '2rem' }}>
+          <h2>Claims & Chat</h2>
+          {claims.length === 0 ? (
+            <p style={{ color: '#6b7280' }}>No claims active for this item.</p>
+          ) : (
+            claims.filter(c => user._id === item.userId?._id || user._id === c.userId?._id).map((claim, idx) => (
+              <div key={idx} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
+                  <div>
+                    <h4 style={{ margin: 0 }}>Claim by {claim.userId?.name || 'Unknown'}</h4>
+                    <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{new Date(claim.createdAt).toLocaleString()}</span>
+                    <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', fontStyle: 'italic' }}>"{claim.proofMessage}"</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span className={`status-badge ${claim.status}`} style={{ display: 'inline-block', marginBottom: '0.5rem' }}>Status: {claim.status.toUpperCase()}</span>
+                    
+                    {user._id === item.userId?._id && claim.status === 'requested' && (
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleUpdateClaim(claim._id, 'approved')} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>Approve</button>
+                        <button onClick={() => handleUpdateClaim(claim._id, 'rejected')} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>Reject</button>
+                      </div>
+                    )}
+                    {user._id === item.userId?._id && claim.status === 'approved' && (
+                      <button onClick={() => handleUpdateClaim(claim._id, 'completed')} style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', cursor: 'pointer' }}>Mark Completed</button>
+                    )}
+                  </div>
+                </div>
+
+                {['approved', 'requested', 'completed'].includes(claim.status) && (
+                  <div className="chat-box" style={{ background: '#f9fafb', borderRadius: '8px', padding: '1rem' }}>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
+                      {claim.messages && claim.messages.map((msg, i) => (
+                        <div key={i} style={{ marginBottom: '0.5rem', textAlign: msg.sender?._id === user._id ? 'right' : 'left' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{msg.sender?.name}:</span>
+                          <span style={{ display: 'inline-block', background: msg.sender?._id === user._id ? '#e0f2fe' : '#fff', padding: '0.4rem 0.8rem', borderRadius: '16px', marginLeft: '0.5rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>{msg.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {claim.status !== 'completed' && (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input type="text" value={chatMessage} onChange={e => setChatMessage(e.target.value)} placeholder="Type a message..." style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                        <button onClick={() => handleSendMessage(claim._id)} style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}>Send</button>
+                      </div>
+                    )}
+                    
+                    {claim.status === 'completed' && user._id === claim.userId?._id && (
+                      <div className="feedback-box mt-4" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                        <h4 style={{ margin: '0 0 0.5rem 0' }}>Rate your experience!</h4>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input type="number" min="1" max="5" placeholder="Rating (1-5)" id="rating-input" style={{ width: '100px', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                          <input type="text" placeholder="Leave a comment (optional)" id="comment-input" style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}/>
+                          <button onClick={async () => {
+                            const r = document.getElementById('rating-input').value;
+                            const c = document.getElementById('comment-input').value;
+                            if(!r) return toast.error("Rating is required");
+                            try {
+                              await axios.post('http://localhost:5000/feedback', { rating: r, comment: c, claimId: claim._id }, { headers: { Authorization: `Bearer ${user.token}` } });
+                              toast.success("Thanks for your feedback!");
+                            } catch(e) { toast.error("Failed to submit feedback"); }
+                          }} style={{ background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.5rem 1rem', cursor: 'pointer' }}>Submit Feedback</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {item.matches?.length > 0 && (
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="advanced-matches-section card">
@@ -122,7 +268,10 @@ const ItemDetail = () => {
                 value={claimText} onChange={e => setClaimText(e.target.value)}
               />
               <div className="modal-actions mt-4">
-                 <button className="button cancel-btn" onClick={() => setClaimModal(false)}>Cancel</button>
+                 <button 
+                   onClick={() => setClaimModal(false)}
+                   style={{ padding: '0.6rem 1.5rem', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#f9fafb', color: '#374151', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                 >Cancel</button>
                  <button className="btn-primary submit-btn" disabled={claiming} onClick={submitClaim}>
                    {claiming ? 'Processing...' : 'Submit Evidence'}
                  </button>

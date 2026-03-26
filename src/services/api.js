@@ -8,7 +8,15 @@ export const api = axios.create({
 });
 
 export const getItems = () => api.get('/items');
-export const searchItems = (query) => api.get(`/items/search?q=${query}`);
+export const searchItems = ({ query, location, category, date, status }) => {
+  const params = new URLSearchParams();
+  if (query) params.append('q', query);
+  if (location) params.append('location', location);
+  if (category) params.append('category', category);
+  if (date) params.append('date', date);
+  if (status) params.append('status', status);
+  return api.get(`/items/search?${params.toString()}`);
+};
 export const getSuggestions = (query) => api.get(`/items/suggestions?q=${query}`);
 export const getTrendingTags = () => api.get('/items/trending-tags');
 export const getRecentActivity = () => api.get('/items/recent-activity');
