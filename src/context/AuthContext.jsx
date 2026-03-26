@@ -21,10 +21,13 @@ export const AuthProvider = ({ children }) => {
           const res = await axios.get(`${API_URL}/me`, {
             headers: { Authorization: `Bearer ${userInfo.token}` },
           });
-          setUser({ ...res.data, token: userInfo.token });
+          const nextUser = { ...res.data, token: userInfo.token };
+          setUser(nextUser);
+          localStorage.setItem("userInfo", JSON.stringify(nextUser));
         } catch (error) {
           console.error("Token expired or invalid");
           localStorage.removeItem("userInfo");
+          setUser(null);
         }
       }
       setLoading(false);
@@ -65,6 +68,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (data) => setUser({ ...user, ...data });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("userInfo", JSON.stringify(user));
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser }}>

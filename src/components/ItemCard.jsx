@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const ItemCard = ({ item }) => {
+  const trustScore = item.userId?.trustScore ?? 0;
+  const trustLabel = trustScore >= 80 ? 'Trusted' : trustScore >= 40 ? 'Neutral' : 'Risky';
+
   return (
     <motion.div 
       whileHover={{ y: -8, scale: 1.02 }}
@@ -24,6 +27,11 @@ const ItemCard = ({ item }) => {
         </div>
         <div className="item-info">
           <h3>{item.title}</h3>
+          {item.userId && (
+            <p style={{ margin: '0 0 0.4rem', fontSize: '0.78rem', fontWeight: 700, color: trustScore >= 80 ? '#166534' : trustScore >= 40 ? '#92400e' : '#b91c1c' }}>
+              {item.userId.name} • {trustLabel} ({trustScore})
+            </p>
+          )}
           <p>{item.description}</p>
           <div className="tags">
             {item.tags?.slice(0, 3).map((t, i) => (

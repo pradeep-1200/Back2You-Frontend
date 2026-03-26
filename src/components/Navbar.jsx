@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PlusCircle, Home as HomeIcon, User, Bell, LogOut, BarChart2, Shield, Menu, X, CheckCheck } from 'lucide-react';
+import { PlusCircle, Home as HomeIcon, User, Bell, LogOut, Shield, Menu, X, CheckCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import './Navbar.css';
@@ -19,7 +19,7 @@ const Navbar = () => {
       const fetchNotifs = async () => {
         try {
           const res = await axios.get('http://localhost:5000/notifications', {
-            headers: { Authorization: `Bearer ${user.token}` }
+            headers: { Authorization: `Bearer ${user.token}` },
           });
           setNotifications(res.data);
         } catch (error) {
@@ -32,7 +32,6 @@ const Navbar = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Close notif dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
@@ -43,27 +42,26 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleRead = async (id) => {
     try {
       await axios.patch(`http://localhost:5000/notifications/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user.token}` },
       });
-      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
     } catch (error) {
       console.error(error);
     }
   };
 
   const markAllRead = async () => {
-    const unread = notifications.filter(n => !n.read);
-    await Promise.all(unread.map(n => handleRead(n._id)));
+    const unread = notifications.filter((n) => !n.read);
+    await Promise.all(unread.map((n) => handleRead(n._id)));
   };
 
   const timeAgo = (date) => {
@@ -74,20 +72,24 @@ const Navbar = () => {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
+  const trustTone = (score = 0) => {
+    if (score >= 80) return 'trusted';
+    if (score >= 40) return 'neutral';
+    return 'risky';
+  };
+
+  const adminActive = location.pathname.startsWith('/admin');
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          <span className="logo-icon">🔁</span> Back2You
+          <span className="logo-icon">B2Y</span> Back2You
         </Link>
 
-        {/* Desktop Nav */}
         <div className="nav-menu desktop-nav">
           <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
             <HomeIcon size={18} /> Home
-          </Link>
-          <Link to="/stats" className={`nav-link ${location.pathname === '/stats' ? 'active' : ''}`}>
-            <BarChart2 size={18} /> Stats
           </Link>
           <Link to="/add" className={`nav-link btn-publish ${location.pathname === '/add' ? 'active' : ''}`}>
             <PlusCircle size={18} /> Report Item
@@ -96,11 +98,10 @@ const Navbar = () => {
           {user ? (
             <>
               {user.role === 'admin' && (
-                <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active' : ''}`}>
+                <Link to="/admin" className={`nav-link ${adminActive ? 'active' : ''}`}>
                   <Shield size={18} /> Admin
                 </Link>
               )}
-              {/* Notification Bell */}
               <div className="notif-wrapper" ref={notifRef}>
                 <button
                   className="notif-btn"
@@ -128,13 +129,13 @@ const Navbar = () => {
                           <p>No notifications yet</p>
                         </div>
                       ) : (
-                        notifications.map(n => (
+                        notifications.map((n) => (
                           <div
                             key={n._id}
                             className={`notif-item ${!n.read ? 'unread' : ''}`}
                             onClick={() => handleRead(n._id)}
                           >
-                            <div className="notif-dot" style={{ background: n.read ? 'transparent' : '#6366f1' }} />
+                            <div className="notif-dot" style={{ background: n.read ? 'transparent' : '#0f766e' }} />
                             <div className="notif-body">
                               <p>{n.message}</p>
                               <span className="notif-time">{timeAgo(n.createdAt)}</span>
@@ -150,6 +151,9 @@ const Navbar = () => {
               <Link to="/profile" className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}>
                 <User size={18} /> {user.name}
               </Link>
+              <span className={`trust-pill ${trustTone(user.trustScore)}`}>
+                Trust {user.trustScore ?? 0}
+              </span>
               <button onClick={logout} className="nav-link icon-btn logout-btn">
                 <LogOut size={18} />
               </button>
@@ -162,23 +166,21 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Hamburger */}
         <button className="hamburger-btn" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileOpen && (
         <div className="mobile-nav">
-          <Link to="/" className="mobile-nav-link">🏠 Home</Link>
-          <Link to="/stats" className="mobile-nav-link">📊 Stats</Link>
-          <Link to="/add" className="mobile-nav-link">➕ Report Item</Link>
+          <Link to="/" className="mobile-nav-link">Home</Link>
+          <Link to="/add" className="mobile-nav-link">Report Item</Link>
           {user ? (
             <>
-              {user.role === 'admin' && <Link to="/admin" className="mobile-nav-link">🛡️ Admin</Link>}
-              <Link to="/profile" className="mobile-nav-link">👤 {user.name}</Link>
-              <button onClick={logout} className="mobile-nav-link mobile-logout">↩️ Logout</button>
+              {user.role === 'admin' && <Link to="/admin" className="mobile-nav-link">Admin</Link>}
+              <div className="mobile-nav-link">Trust: {user.trustScore ?? 0}</div>
+              <Link to="/profile" className="mobile-nav-link">Profile</Link>
+              <button onClick={logout} className="mobile-nav-link mobile-logout">Logout</button>
             </>
           ) : (
             <>

@@ -2,40 +2,86 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 120px);
-  padding: 2rem 0;
+  min-height: calc(100vh - 110px);
+  padding: 1.25rem 0 2rem;
 }
 .form-container {
   width: 100%;
-  max-width: 650px;
-  padding: 3.5rem;
+  max-width: 760px;
+  padding: 2.25rem;
   background: #ffffff;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid #cfd8e6;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 .form-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.35rem;
 }
-.page-title { margin-bottom: 0.5rem; font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+.page-title { margin-bottom: 0.45rem; font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+
+.form-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  min-height: 40px;
+}
+
+.form-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.95rem;
+  border: 1.5px solid #b7c3d8;
+  background: #ffffff;
+  color: var(--text-primary);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-back-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.form-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
 
 .toggle-group {
   display: flex;
   background: var(--bg-main) !important;
   border-radius: var(--radius-full) !important;
   padding: 0.5rem !important;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid #cfd8e6;
 }
 .toggle {
   flex: 1;
   text-align: center;
-  padding: 0.8rem;
+  padding: 0.75rem;
   border-radius: var(--radius-full);
   cursor: pointer;
   color: var(--text-secondary);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .active-lost { 
@@ -52,12 +98,12 @@
 .form-input {
   width: 100%;
   background: #ffffff;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid #c5cfde;
   border-radius: var(--radius-md);
-  padding: 1rem 1.2rem;
+  padding: 0.95rem 1.1rem;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 1.05rem;
+  font-size: 1rem;
   transition: all 0.3s ease;
 }
 .form-input:focus {
@@ -71,8 +117,8 @@
 }
 
 .upload-box {
-  min-height: 180px;
-  border: 2px dashed var(--border-color);
+  min-height: 170px;
+  border: 2px dashed #c5cfde;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -97,7 +143,7 @@
 .preview-wrap {
   position: relative;
   width: 100%;
-  height: 250px;
+  height: 220px;
 }
 .image-preview {
   width: 100%;
@@ -127,13 +173,57 @@
 }
 
 .form-btn {
-  margin-top: 1.5rem;
-  padding: 1.2rem;
-  font-size: 1.15rem;
+  padding: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   width: 100%;
 }
+
+.form-action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.form-secondary-btn {
+  min-width: 128px;
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid #b7c3d8;
+  background: #ffffff;
+  color: var(--text-primary);
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-secondary-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.form-action-row .form-btn {
+  margin-top: 0;
+  flex: 1;
+}
+
 @media (max-width: 600px) {
-  .form-container { padding: 2rem 1.5rem; }
+  .form-container { padding: 1.5rem 1rem; }
+  .page-title { font-size: 1.75rem; }
+  .form-topbar,
+  .form-action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-mode-badge {
+    justify-content: center;
+  }
+
+  .form-secondary-btn {
+    min-width: 0;
+  }
 }

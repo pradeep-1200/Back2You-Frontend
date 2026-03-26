@@ -7,6 +7,18 @@ export const api = axios.create({
   baseURL: API_URL,
 });
 
+api.interceptors.request.use((config) => {
+  const userInfo = localStorage.getItem('userInfo');
+  config.headers = config.headers || {};
+  if (userInfo) {
+    const { token } = JSON.parse(userInfo);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 export const getItems = () => api.get('/items');
 export const searchItems = ({ query, location, category, date, status }) => {
   const params = new URLSearchParams();
@@ -23,6 +35,10 @@ export const getRecentActivity = () => api.get('/items/recent-activity');
 export const createItem = (data) => api.post('/items', data, {
   headers: { 'Content-Type': 'multipart/form-data' },
 });
+export const updateItem = (id, data) => api.patch(`/items/${id}`, data, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
+export const deleteItem = (id) => api.delete(`/items/${id}`);
 export const getItemById = (id) => api.get(`/items/${id}`);
 export const createClaim = (data) => api.post('/claims', data);
 
